@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="https://www.claude-code.pro/assets/logo-CmqK1gGn.png" alt="Claude CodePro" width="400">
+<img src="https://www.claude-code.pro/assets/logo-CZm5tDhJ.png" alt="Claude CodePro" width="400">
 
 ### Claude CodePro is a Professional System for Building Quality Code ⚙️💻
 
-**A structured approach to software development with specs, tests, and professional workflows.**
+**A structured approach to software development with Specs, Tests, and Professional Workflows.**
 
 **Stop vibe coding, start shipping systematically with Spec-Driven Development, TDD, and much more!**
 
