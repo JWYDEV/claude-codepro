@@ -103,7 +103,7 @@
 ### ⚙️ Configuration
 
 - In the launched terminal, run `cc` to finish CC Setup, then `cr` to finish CodeRabbit setup
-- In CC, run `/config` to set auto-connect to IDE to true and disable auto-compaction, enable verbose output
+- In CC, run `/config` to set auto-connect to IDE to true and disable auto-compaction for best experience
 - In CC, run `/ide` to connect to VS Code diagnostics and make sure all MCP servers for `/mcp` are online
 - In VS Code, click `START` in the lower bar to start a split terminal and monitor CC usage with `/usage`
 - Open Claude Code in the IDE Terminal, Extension or an external Terminal like Warp with the `cc` command
