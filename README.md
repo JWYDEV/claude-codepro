@@ -28,7 +28,7 @@
 - `/plan` - Based on your input asks the right questions → Detailed spec with exact code (Opus 4.1)
 - `/implement` - Execute spec with mandatory TDD → Auto-manages context when full (Sonnet 4.5)
 - `/remember` - Stores learnings in cross-session memory → Continue after /clear (Sonnet 4.5)
-- `/verify` - E2E spec verification with CodeRabbit AI review → All tests, quality gates, security (Sonnet 4.5)
+- `/verify` - E2E spec verification with CodeRabbit AI review → All tests, quality, security (Sonnet 4.5)
 
 ### 🎨 Auto-Enforce Best Practices and Standards via Skills
 - **Testing Skills** - TDD, test writing, anti-patterns, debugging, verification, code review
