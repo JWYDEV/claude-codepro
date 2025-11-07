@@ -35,19 +35,16 @@
 - **Frontend Skills** - Components, CSS, accessibility, responsive design
 
 ### 🔌 Enhanced Context and Capabilities via MCP Servers
-- **Cipher** - Cross-session memory so context is never lost between /clear commands
-- **Claude Context** - Semantic codebase search for optimal context retrieval
+- **Cipher & Claude Context** - Cross-session memory and semantic code search for optimal context
 - **Context7 & Ref** - Up-to-date library documentation with limited context blur
 - **DBHub & FireCrawl** - Database access and web scraping for dynamic data retrieval
 - **MCP Funnel** - Allows to plug-in more MCP servers as needed without wasting context
 
 ### 🛠️ Testing and Quality via Automated Tool Installation
-- **uv/pytest** - Unit and integration testing with uv and pytest
-- **Newman** - API end-to-end testing with Postman collections
 - **CodeRabbit** - AI-powered code review for quality and security
 - **Qlty** - Automated code quality hooks for all programming languages
-- **Basedpyright** - Python Type checking with enhanced features
-- **Ruff** - Fast Python linter and formatter
+- **Newman** - API end-to-end testing with Postman collections
+- **uv, ruff, mypy, basedpyright** - Python linter, formatter, and type checker
 
 ### 🐳 Automated Dev Container Setup (VS Code / Cursor / Windsurf)
 - **Integrated Features** - Zsh, Node.js, Docker-in-Docker, uv, ruff, basedpyright, git, fzf
@@ -91,8 +88,6 @@
 - Use `/implement` to execute the spec with automatic TDD, best practices and context management
 - When context fills, `/remember` automatically updates your plan and stores learnings
 - After spec completion, run `/verify` to run CodeRabbit AI review, all tests, and quality checks
-- Watch as CC automatically applies best practices, testing, and quality control with every step
-
 
 ## ⚖️ What Makes This Different
 
