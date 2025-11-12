@@ -90,6 +90,7 @@ vim .env
 4. Wait for automatic build to finish, this can take a couple of minutes (feel free to watch the logs in `Terminal`)
 <img src="docs/img/ide-setup-finish.png" alt="Setup finish Screenshot" width="600">
 5. Run `cc` (which is an alias we created) in the Terminal to finish CC Setup, `cr` to finish CodeRabbit setup
+
 ```bash
 # alias to spawn claude code with loaded environment varaibles
 cc
