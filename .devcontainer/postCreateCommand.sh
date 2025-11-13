@@ -58,6 +58,9 @@ docker-compose -f .devcontainer/docker-compose.yml up -d
     echo 'alias cc="cd /workspaces/claude-codepro && uv run .claude/rules/builder.py && clear && dotenvx run claude"'
 } | tee -a ~/.bashrc ~/.zshrc >/dev/null
 
+# Make zsh the default shell
+chsh -s $(which zsh)
+
 # Print finish message
 echo ""
 echo "======================================================================"
@@ -75,7 +78,7 @@ echo "   cc  # Setup Claude Code"
 echo "   cr  # Setup CodeRabbit CLI"
 echo ""
 echo "3. Configure Claude Code:"
-echo "   - Run /config to set auto-connect to IDE=true, Auto-compact=false"
+echo "   - Run /config to set 'Auto-connect to IDE=true' and 'Auto-compact=false'"
 echo "   - Run /ide to connect to VS Code diagnostics"
 echo "   - Run /mcp to verify all MCP servers are online"
 echo ""
