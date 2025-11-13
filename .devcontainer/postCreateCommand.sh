@@ -58,6 +58,9 @@ docker-compose -f .devcontainer/docker-compose.yml up -d
     echo 'alias cc="cd /workspaces/claude-codepro && uv run .claude/rules/builder.py && clear && dotenvx run claude"'
 } | tee -a ~/.bashrc ~/.zshrc >/dev/null
 
+# Make zsh the default shell
+chsh -s $(which zsh)
+
 # Print finish message
 echo ""
 echo "======================================================================"
