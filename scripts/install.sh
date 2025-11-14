@@ -343,29 +343,6 @@ install_newman() {
     print_success "Installed Newman"
 }
 
-install_statusline() {
-    # Check if jq is installed (required by statusline)
-    if ! command -v jq &> /dev/null; then
-        print_status "Installing jq (required for statusline)..."
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            brew install jq 2>/dev/null || {
-                print_warning "Please install jq manually: brew install jq"
-                return 1
-            }
-        else
-            sudo apt-get install -y jq 2>/dev/null || sudo yum install -y jq 2>/dev/null || {
-                print_warning "Please install jq manually"
-                return 1
-            }
-        fi
-    fi
-
-    print_status "Installing Claude Code Statusline..."
-    curl -fsSL https://raw.githubusercontent.com/hagan/claudia-statusline/main/scripts/quick-install.sh | bash
-
-    print_success "Installed Claude Code Statusline"
-}
-
 install_dotenvx() {
     if command -v dotenvx &> /dev/null; then
         print_success "dotenvx already installed"
@@ -565,9 +542,6 @@ with open('$PROJECT_DIR/.claude/settings.local.json', 'w') as f:
     echo ""
 
     install_newman
-    echo ""
-
-    install_statusline
     echo ""
 
     install_dotenvx

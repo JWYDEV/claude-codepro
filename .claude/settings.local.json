@@ -85,6 +85,10 @@
       }
     ]
   },
+   "statusLine": {
+    "type": "command",
+    "command": "npx -y @owloops/claude-powerline@latest --theme=dark --style=capsule"
+  },
   "outputStyle": "default",
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true
