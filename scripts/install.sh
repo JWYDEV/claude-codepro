@@ -105,22 +105,30 @@ install_directory() {
     local repo_dir=$1
     local dest_base=$2
 
-    print_status "Installing $repo_dir..."
+    print_status "Fetching $repo_dir files..."
 
     local file_count=0
     local files
     files=$(get_repo_files "$repo_dir")
 
+    local total_files
+    total_files=$(echo "$files" | grep -c . || echo 0)
+
     if [[ -n "$files" ]]; then
+        local processed=0
         while IFS= read -r file_path; do
             if [[ -n "$file_path" ]]; then
+                ((processed++)) || true
+                printf "\r   [%d/%d] Downloading %s..." "$processed" "$total_files" "$(basename "$file_path")"
+
                 local dest_file="${dest_base}/${file_path}"
 
-                if download_file "$file_path" "$dest_file"; then
+                if download_file "$file_path" "$dest_file" 2>/dev/null; then
                     ((file_count++)) || true
                 fi
             fi
         done <<< "$files"
+        echo ""  # New line after progress
     fi
 
     print_success "Installed $file_count files"
@@ -436,14 +444,22 @@ main() {
     print_section "Installing Claude CodePro Files"
 
     # Download .claude directory (update existing files, preserve settings.local.json)
-    print_status "Downloading .claude files..."
+    print_status "Fetching file list from repository..."
     local files
     files=$(get_repo_files ".claude")
 
+    # Count total files
+    local total_files
+    total_files=$(echo "$files" | grep -c . || echo 0)
+    print_status "Found $total_files files to sync"
+
     local file_count=0
+    local processed=0
     if [[ -n "$files" ]]; then
         while IFS= read -r file_path; do
             if [[ -n "$file_path" ]]; then
+                ((processed++)) || true
+
                 # Skip Python hook if Python not selected
                 if [[ "$INSTALL_PYTHON" =~ ^[Yy]$ ]] || [[ "$file_path" != *"file_checker_python.sh"* ]]; then
                     # Ask about settings.local.json if it already exists
@@ -455,13 +471,17 @@ main() {
                         [[ ! $REPLY =~ ^[Yy]$ ]] && print_success "Kept existing settings.local.json" && continue
                     fi
 
+                    # Show progress for every file
+                    printf "\r   [%d/%d] Downloading %s..." "$processed" "$total_files" "$(basename "$file_path")"
+
                     local dest_file="${PROJECT_DIR}/${file_path}"
-                    if download_file "$file_path" "$dest_file"; then
+                    if download_file "$file_path" "$dest_file" 2>/dev/null; then
                         ((file_count++)) || true
                     fi
                 fi
             fi
         done <<< "$files"
+        echo ""  # New line after progress
     fi
 
     # Remove Python hook from settings.local.json if Python not selected

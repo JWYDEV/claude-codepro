@@ -6,19 +6,35 @@
     },
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp", "--api-key", "${CONTEXT7_API_KEY}"]
+      "args": [
+        "-y",
+        "@upstash/context7-mcp",
+        "--api-key",
+        "${CONTEXT7_API_KEY}"
+      ]
     },
     "claude-context": {
       "command": "npx",
-      "args": ["-y", "@zilliz/claude-context-mcp"]
+      "args": [
+        "-y",
+        "@zilliz/claude-context-mcp"
+      ]
     },
     "cipher": {
       "command": "cipher",
-      "args": ["--mode", "mcp", "--agent", ".cipher/config.yml"]
+      "args": [
+        "--mode",
+        "mcp",
+        "--agent",
+        ".cipher/config.yml"
+      ]
     },
     "mcp-funnel": {
       "command": "npx",
-      "args": ["-y", "mcp-funnel"]
+      "args": [
+        "-y",
+        "mcp-funnel"
+      ]
     }
   }
 }
