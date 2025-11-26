@@ -37,7 +37,6 @@ def add_shell_alias(
     alias_pattern = re.compile(rf"^alias {re.escape(alias_name)}=", re.MULTILINE)
 
     if marker in content:
-        # Update existing marker section
         lines = content.split("\n")
         new_lines = []
         in_section = False
@@ -57,7 +56,6 @@ def add_shell_alias(
         ui.print_success(f"Updated alias '{alias_name}' in {shell_name}")
 
     elif alias_pattern.search(content):
-        # Replace existing alias (not created by us) with our marker + alias
         lines = content.split("\n")
         new_lines = []
 
@@ -72,7 +70,6 @@ def add_shell_alias(
         ui.print_success(f"Updated existing alias '{alias_name}' in {shell_name}")
 
     else:
-        # No existing alias, add new one
         with open(shell_file, "a") as f:
             f.write(f"\n{marker}\n{alias_cmd}\n")
         ui.print_success(f"Added alias '{alias_name}' to {shell_name}")
@@ -103,7 +100,6 @@ def add_cc_alias(project_dir: Path) -> None:
     add_shell_alias(home / ".bashrc", bash_alias, ".bashrc", alias_name, project_dir)
     add_shell_alias(home / ".zshrc", bash_alias, ".zshrc", alias_name, project_dir)
 
-    # Fish shell uses different syntax
     fish_config = home / ".config" / "fish" / "config.fish"
     fish_alias = (
         f"alias {alias_name}=\"cd '{project_dir}'; and "

@@ -97,14 +97,12 @@ def run_migration(project_dir: Path, non_interactive: bool = False) -> None:
         print("  4. Re-run installation")
         sys.exit(1)
 
-    # Create backup
     timestamp = int(time.time())
     backup_dir = project_dir / ".claude" / f"rules.backup.{timestamp}"
     ui.print_status(f"Creating backup at {backup_dir.name}...")
     shutil.copytree(rules_dir, backup_dir)
     ui.print_success(f"Backup created at: {backup_dir}")
 
-    # Flatten each source directory
     for source in ["standard", "custom"]:
         source_dir = rules_dir / source
         if not source_dir.exists():
@@ -115,7 +113,6 @@ def run_migration(project_dir: Path, non_interactive: bool = False) -> None:
             if not subdir_path.exists():
                 continue
 
-            # Move .md files from subdirectory to parent
             for md_file in subdir_path.glob("*.md"):
                 dest = source_dir / md_file.name
                 if dest.exists():
@@ -124,12 +121,10 @@ def run_migration(project_dir: Path, non_interactive: bool = False) -> None:
                 shutil.move(str(md_file), str(dest))
                 ui.print_success(f"Moved: {source}/{old_subdir}/{md_file.name} → {source}/{md_file.name}")
 
-            # Remove subdirectory (including any remaining files like .gitkeep)
             if subdir_path.exists():
                 shutil.rmtree(subdir_path)
                 ui.print_status(f"Removed: {source}/{old_subdir}/")
 
-    # Also remove old config.yaml if it exists (no longer needed)
     config_file = rules_dir / "config.yaml"
     if config_file.exists():
         config_file.unlink()

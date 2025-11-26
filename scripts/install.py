@@ -181,7 +181,6 @@ def remove_python_settings(settings_file: Path) -> None:
         settings_file.write_text(json.dumps(settings_data, indent=2) + "\n")
         ui.print_success("Configured settings.local.json without Python support")
 
-        # Also remove custom/python-rules.md if it exists
         custom_python_rules = settings_file.parent / "rules" / "custom" / "python-rules.md"
         if custom_python_rules.exists():
             custom_python_rules.unlink()
@@ -223,21 +222,10 @@ def install_claude_files(project_dir: Path, config, install_python: str, local_m
     claude_files = downloads.get_repo_files(".claude", config)
 
     for file_path in claude_files:
-        if not file_path:
-            continue
-
-        if "rules/custom/" in file_path:
-            continue
-
-        if "settings.local.json" in file_path and "settings.local.template.json" not in file_path:
-            continue
-
-        if install_python.lower() not in ["y", "yes"] and "file_checker_python.py" in file_path:
-            continue
-
-        # Python rules in custom/ only installed if Python support selected
-        if "custom/python-rules.md" in file_path:
-            if install_python.lower() not in ["y", "yes"]:
+        if install_python.lower() not in ["y", "yes"]:
+            if "file_checker_python.py" in file_path:
+                continue
+            if "custom/python-rules.md" in file_path:
                 continue
 
         dest_file = project_dir / file_path
@@ -316,7 +304,6 @@ def main() -> None:
 
         ui.print_status(f"Installing into: {project_dir}")
 
-        # Show version info - especially useful during upgrades
         if (project_dir / ".claude").exists():
             ui.print_status(f"Upgrading Claude CodePro to {VERSION}")
         else:
@@ -334,7 +321,7 @@ def main() -> None:
         else:
             print("Do you want to install advanced Python features?")
             print("This includes: uv, ruff, mypy, basedpyright, and Python quality hooks")
-            sys.stdout.flush()  # Ensure prompt is displayed before reading input
+            sys.stdout.flush()
             install_python = input("Install Python support? (Y/n): ").strip() or "Y"
             print("")
             print("")
@@ -349,6 +336,13 @@ def main() -> None:
             custom_dir.mkdir(parents=True, exist_ok=True)
             (custom_dir / ".gitkeep").touch()
             print("   ✓ Created custom/")
+
+        ui.print_status("Setting up skills directory...")
+        skills_dir = project_dir / ".claude" / "skills"
+        if not skills_dir.exists():
+            skills_dir.mkdir(parents=True, exist_ok=True)
+            (skills_dir / ".gitkeep").touch()
+            print("   ✓ Created skills/")
 
         ui.print_status("Generating settings.local.json from template...")
         template_file = project_dir / ".claude" / "settings.local.template.json"

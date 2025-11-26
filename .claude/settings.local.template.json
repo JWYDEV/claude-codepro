@@ -81,7 +81,7 @@
     "command": "npx -y ccstatusline@latest",
     "padding": 0
   },
-  "model": "default",
+  "model": "opus",
   "outputStyle": "default",
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true

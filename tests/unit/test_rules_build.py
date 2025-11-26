@@ -83,16 +83,20 @@ def temp_rules_dir():
 
 
 @pytest.fixture
-def config_with_rules(temp_rules_dir):
+def config_with_rules():
     """Create a RuleBuilderConfig with temporary directories."""
-    claude_dir = temp_rules_dir.parent
-    project_root = claude_dir.parent
+    with tempfile.TemporaryDirectory() as tmpdir:
+        project_root = Path(tmpdir)
+        claude_dir = project_root / ".claude"
+        rules_dir = claude_dir / "rules"
+        claude_dir.mkdir(parents=True)
+        rules_dir.mkdir(parents=True)
 
-    return RuleBuilderConfig(
-        project_root=project_root,
-        claude_dir=claude_dir,
-        rules_dir=temp_rules_dir,
-    )
+        yield RuleBuilderConfig(
+            project_root=project_root,
+            claude_dir=claude_dir,
+            rules_dir=rules_dir,
+        )
 
 
 class TestLoadRules:
