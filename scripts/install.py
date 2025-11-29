@@ -34,6 +34,7 @@ LIB_MODULES = [
     "env_setup.py",
     "devcontainer.py",
     "git_setup.py",
+    "premium.py",
 ]
 
 PYTHON_PERMISSIONS = [
@@ -70,6 +71,9 @@ def bootstrap_download(repo_path: str, dest_path: Path, local_mode: bool, local_
     if local_mode and local_repo_dir:
         source_file = local_repo_dir / repo_path
         if source_file.is_file():
+            # If source and dest are the same file, no copy needed
+            if source_file.resolve() == dest_path.resolve():
+                return True
             try:
                 import shutil
 
@@ -288,6 +292,7 @@ def main() -> None:
         files,
         git_setup,
         migration,
+        premium,
         shell_config,
         ui,
         utils,
@@ -463,6 +468,10 @@ def main() -> None:
             ui.print_success("Installed statusline configuration to ~/.config/ccstatusline/settings.json")
         else:
             ui.print_warning("statusline.json not found in .claude directory, skipping")
+        print("")
+
+        ui.print_section("Premium Features")
+        premium.install_premium_features(project_dir, args.non_interactive)
         print("")
 
         ui.print_section("Configuring Shell")

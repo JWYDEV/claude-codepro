@@ -1,0 +1,268 @@
+"""Premium features installation for Claude CodePro."""
+
+from __future__ import annotations
+
+import json
+import os
+import platform
+import stat
+import urllib.error
+import urllib.parse
+import urllib.request
+from pathlib import Path
+
+GUMROAD_VERIFY_URL = "https://api.gumroad.com/v2/licenses/verify"
+PRODUCT_ID = "c3Sr8oRvWIimCH1zf5I02w=="
+
+# GitHub releases URL for premium binaries
+GITHUB_REPO = "maxritter/claude-codepro"
+PREMIUM_RELEASE_TAG = "premium-latest"
+
+
+def get_platform_binary_name() -> str:
+    """Get the correct binary name for the current platform."""
+    system = platform.system().lower()
+    machine = platform.machine().lower()
+
+    # Normalize architecture
+    if machine in ("x86_64", "amd64"):
+        arch = "x86_64"
+    elif machine in ("arm64", "aarch64"):
+        arch = "arm64"
+    else:
+        arch = machine
+
+    # Map to binary names
+    if system == "darwin":
+        return f"ccp-premium-darwin-{arch}"
+    elif system == "linux":
+        return f"ccp-premium-linux-{arch}"
+    elif system == "windows":
+        return f"ccp-premium-windows-{arch}.exe"
+    else:
+        return f"ccp-premium-{system}-{arch}"
+
+
+def validate_license_key(license_key: str) -> tuple[bool, str]:
+    """Validate license key with Gumroad API."""
+    try:
+        data = urllib.parse.urlencode(
+            {
+                "product_id": PRODUCT_ID,
+                "license_key": license_key,
+                "increment_uses_count": "true",  # Track activations
+            }
+        ).encode()
+
+        request = urllib.request.Request(
+            GUMROAD_VERIFY_URL,
+            data=data,
+            method="POST",
+        )
+
+        with urllib.request.urlopen(request, timeout=15) as response:
+            result = json.loads(response.read().decode())
+
+            if result.get("success"):
+                purchase = result.get("purchase", {})
+                if purchase.get("refunded"):
+                    return False, "License has been refunded"
+                if purchase.get("disputed"):
+                    return False, "License is disputed"
+
+                uses = result.get("uses", 0)
+                return True, f"License valid (activation #{uses})"
+
+            return False, result.get("message", "Invalid license key")
+
+    except urllib.error.URLError as e:
+        return False, f"Network error: {e}"
+    except json.JSONDecodeError:
+        return False, "Invalid response from license server"
+    except Exception as e:
+        return False, f"Validation error: {e}"
+
+
+def download_premium_binary(dest_dir: Path) -> tuple[bool, str]:
+    """Download premium binary from GitHub releases."""
+    binary_name = get_platform_binary_name()
+    dest_path = dest_dir / "ccp-premium"
+
+    # Add .exe extension on Windows
+    if platform.system().lower() == "windows":
+        dest_path = dest_dir / "ccp-premium.exe"
+
+    # GitHub releases download URL
+    url = f"https://github.com/{GITHUB_REPO}/releases/download/"
+    url += f"{PREMIUM_RELEASE_TAG}/{binary_name}"
+
+    try:
+        request = urllib.request.Request(
+            url,
+            headers={"User-Agent": "claude-codepro-installer/1.0"},
+        )
+
+        with urllib.request.urlopen(request, timeout=120) as response:
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            dest_path.write_bytes(response.read())
+
+            # Make executable on Unix
+            if platform.system().lower() != "windows":
+                dest_path.chmod(dest_path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+            return True, str(dest_path)
+
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return False, "Premium binary not found (release may not exist yet)"
+        return False, f"Download failed: HTTP {e.code}"
+    except urllib.error.URLError as e:
+        return False, f"Network error: {e}"
+    except Exception as e:
+        return False, f"Download error: {e}"
+
+
+def save_license_to_env(project_dir: Path, license_key: str) -> None:
+    """Save license key to .env file."""
+    env_file = project_dir / ".env"
+
+    # Read existing .env content
+    existing_lines: list[str] = []
+    if env_file.exists():
+        existing_lines = env_file.read_text().splitlines()
+
+    # Remove any existing CCP_LICENSE_KEY line
+    filtered_lines = [line for line in existing_lines if not line.startswith("CCP_LICENSE_KEY=")]
+
+    # Add the new license key
+    filtered_lines.append(f"CCP_LICENSE_KEY={license_key}")
+
+    # Write back
+    env_file.write_text("\n".join(filtered_lines) + "\n")
+
+
+def update_settings_for_premium(settings_file: Path, binary_path: Path) -> bool:
+    """Update settings.local.json to add premium context-monitor hook."""
+    if not settings_file.exists():
+        return False
+
+    try:
+        settings = json.loads(settings_file.read_text())
+
+        # Ensure hooks structure exists
+        if "hooks" not in settings:
+            settings["hooks"] = {}
+        if "PostToolUse" not in settings["hooks"]:
+            settings["hooks"]["PostToolUse"] = []
+
+        # Check if context-monitor hook already exists
+        context_hook_exists = False
+        for hook_group in settings["hooks"]["PostToolUse"]:
+            matcher = hook_group.get("matcher", "")
+            if "Bash" in matcher or "Read" in matcher or "Grep" in matcher:
+                for hook in hook_group.get("hooks", []):
+                    cmd = hook.get("command", "")
+                    if "context-monitor" in cmd or "context_monitor" in cmd:
+                        # Update existing hook to use binary
+                        hook["command"] = f"{binary_path} context-monitor"
+                        context_hook_exists = True
+
+        # Add new hook group if context-monitor doesn't exist
+        if not context_hook_exists:
+            settings["hooks"]["PostToolUse"].append(
+                {
+                    "matcher": "Bash|Read|Grep|Glob",
+                    "hooks": [{"type": "command", "command": f"{binary_path} context-monitor"}],
+                }
+            )
+
+        settings_file.write_text(json.dumps(settings, indent=2) + "\n")
+        return True
+
+    except (json.JSONDecodeError, OSError):
+        return False
+
+
+def prompt_for_premium(non_interactive: bool) -> str | None:
+    """Prompt user for premium license key."""
+    from lib import ui
+
+    if non_interactive:
+        # Check environment variable in non-interactive mode
+        license_key = os.getenv("CCP_LICENSE_KEY")
+        if license_key:
+            ui.print_status("Found license key in CCP_LICENSE_KEY environment variable")
+            return license_key
+        return None
+
+    print("")
+    print(f"{ui.BLUE}━━━ Premium Features ━━━{ui.NC}")
+    print("")
+    print("Claude CodePro Premium includes:")
+    print("  • Advanced context monitoring (warns before hitting limits)")
+    print("  • Priority support")
+    print("  • Future premium features")
+    print("")
+    print(f"Get a license at: {ui.BLUE}https://premium.claude-code.pro{ui.NC}")
+    print("")
+
+    has_license = input("Do you have a premium license key? (y/N): ").strip()
+    if has_license.lower() not in ["y", "yes"]:
+        return None
+
+    license_key = input("Enter your license key: ").strip()
+    if not license_key:
+        return None
+
+    return license_key
+
+
+def install_premium_features(project_dir: Path, non_interactive: bool) -> bool:
+    """Main entry point for premium installation."""
+    from lib import ui
+
+    license_key = prompt_for_premium(non_interactive)
+    if not license_key:
+        ui.print_status("Skipping premium features")
+        return False
+
+    ui.print_status("Validating license key...")
+    valid, message = validate_license_key(license_key)
+
+    if not valid:
+        ui.print_error(f"License validation failed: {message}")
+        return False
+
+    ui.print_success(message)
+
+    # Save license key to .env file
+    save_license_to_env(project_dir, license_key)
+    ui.print_success("Saved license key to .env")
+
+    # Download binary from GitHub releases
+    ui.print_status("Downloading premium binary from GitHub...")
+    bin_dir = project_dir / ".claude" / "bin"
+    success, result = download_premium_binary(bin_dir)
+
+    if not success:
+        ui.print_error(f"Download failed: {result}")
+        ui.print_warning("Premium features will not be available")
+        return False
+
+    binary_path = Path(result)
+    ui.print_success(f"Installed premium binary to {binary_path}")
+
+    # Update settings to use binary
+    settings_file = project_dir / ".claude" / "settings.local.json"
+    if update_settings_for_premium(settings_file, binary_path):
+        ui.print_success("Configured premium hooks")
+    else:
+        ui.print_warning("Could not update settings - you may need to configure hooks manually")
+
+    # Remove Python version of context monitor (replaced by binary)
+    python_monitor = project_dir / ".claude" / "hooks" / "context_monitor.py"
+    if python_monitor.exists():
+        python_monitor.unlink()
+        ui.print_status("Removed Python context monitor (replaced by binary)")
+
+    return True

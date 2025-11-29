@@ -230,5 +230,13 @@ settings.local.json
 .claude/rules/custom/project.md
 CLAUDE.local.md
 
+# Premium build artifacts (source is encrypted with git-crypt)
+premium/dist/
+premium/build/
+.claude/bin/
+
+# Git-crypt key (NEVER commit this!)
+.keys/
+
 # Kiro
 .kiro/
