@@ -15,7 +15,6 @@ from installer.steps.bootstrap import BootstrapStep
 from installer.steps.claude_files import ClaudeFilesStep
 from installer.steps.config_files import ConfigFilesStep
 from installer.steps.dependencies import DependenciesStep
-from installer.steps.devcontainer import DevcontainerStep
 from installer.steps.environment import EnvironmentStep
 from installer.steps.finalize import FinalizeStep
 from installer.steps.git_setup import GitSetupStep
@@ -33,7 +32,6 @@ app = typer.Typer(
 def get_all_steps() -> list[BaseStep]:
     """Get all installation steps in order."""
     return [
-        DevcontainerStep(),
         BootstrapStep(),
         GitSetupStep(),
         ClaudeFilesStep(),

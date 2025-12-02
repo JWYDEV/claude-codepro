@@ -21,17 +21,27 @@ Start shipping systematically with Spec-Driven Development, Skills, TDD, Semanti
 
 ## 🚀 Getting Started
 
-Run this command in **any project directory** for a **fresh install** or to **update to the latest version**:
+### Prerequisites
+
+- **Container Runtime** - [Docker Desktop](https://www.docker.com/products/docker-desktop) or [OrbStack](https://orbstack.dev/) (macOS)
+- **IDE** - [VS Code](https://code.visualstudio.com/), [Cursor](https://cursor.sh/), [Windsurf](https://windsurf.com/editor), or [Antigravity](https://antigravity.google/)
+- **Dev Containers extension** - [Install from Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+### Installation
+
+Claude CodePro can be installed into any existing project:
+
+1. Open your project folder in your IDE
+2. Run this command in the terminal:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/maxritter/claude-codepro/v3.0.8/install.sh | bash
 ```
 
-The installer will guide you through the setup process with interactive prompts.
+3. Reopen in Container: `Cmd+Shift+P` → "Dev Containers: Reopen in Container"
+4. Installation completes automatically inside the container
 
-**Recommended:** Install via Dev Container for complete isolation from your host system. The installer will offer to set up the dev container configuration automatically.
-
-**Alternative:** Install directly on your host system. This may interfere with existing packages and settings, therefore it is not recommended unless you know what you're doing.
+> **Note:** Claude CodePro runs inside a Dev Container for complete isolation, consistent tooling, and cross-platform compatibility.
 
 ---
 
@@ -69,7 +79,7 @@ The installer will guide you through the setup process with interactive prompts.
 
 ### 🏗️ One-Command Installation
 
-- **Dev Container Support** - Isolated development environment with pre-configured tools and extensions
+- **Dev Container Required** - Isolated Linux environment with pre-configured tools and extensions
 - **Automated Setup Script** - Installs and configures everything in one command
 - **Shell Integration** - Auto-configures bash and zsh with `ccp` alias
 - **IDE Compatible** - Works with VS Code, Cursor, Windsurf or Antigravity

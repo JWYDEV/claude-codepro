@@ -81,8 +81,8 @@ echo "Installing Claude CodePro..."
 echo "=================================================="
 echo ""
 
-# Download and run the latest installer
-curl -fsSL https://raw.githubusercontent.com/maxritter/claude-codepro/main/install.sh | bash
+# Download and run the installer (version updated by semantic-release)
+curl -fsSL https://raw.githubusercontent.com/maxritter/claude-codepro/v3.0.9/install.sh | bash
 
 # Get project slug from workspace folder name (matches container name)
 PROJECT_SLUG=$(basename "$PWD")

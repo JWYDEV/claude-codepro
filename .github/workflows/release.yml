@@ -69,48 +69,6 @@ jobs:
           path: installer/dist/${{ matrix.artifact }}
           retention-days: 7
 
-  build-installer-macos:
-    name: Build Installer macOS ${{ matrix.arch }}
-    runs-on: ${{ matrix.os }}
-    needs: quality
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-13
-            arch: x86_64
-            artifact: ccp-installer-darwin-x86_64
-          - os: macos-latest
-            arch: arm64
-            artifact: ccp-installer-darwin-arm64
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Build binary
-        working-directory: installer
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install pyinstaller rich httpx
-          python -m pip install typer platformdirs
-          python build.py
-
-      - name: Ad-hoc code sign
-        run: codesign --force --deep -s - installer/dist/${{ matrix.artifact }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: ${{ matrix.artifact }}
-          path: installer/dist/${{ matrix.artifact }}
-          retention-days: 7
-
   build-premium-linux:
     name: Build Premium Linux ${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
@@ -154,59 +112,6 @@ jobs:
               pip install pyinstaller httpx && \
               python build.py
             "
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: ${{ matrix.artifact }}
-          path: premium/dist/${{ matrix.artifact }}
-          retention-days: 7
-
-  build-premium-macos:
-    name: Build Premium macOS ${{ matrix.arch }}
-    runs-on: ${{ matrix.os }}
-    needs: quality
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-13
-            arch: x86_64
-            artifact: ccp-premium-darwin-x86_64
-          - os: macos-latest
-            arch: arm64
-            artifact: ccp-premium-darwin-arm64
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Install git-crypt
-        run: brew install git-crypt
-
-      - name: Decrypt premium folder
-        env:
-          # yamllint disable-line rule:truthy
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: |
-          echo "$GIT_CRYPT_KEY" | base64 -d > /tmp/git-crypt.key
-          git-crypt unlock /tmp/git-crypt.key
-          rm /tmp/git-crypt.key
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Build binary
-        working-directory: premium
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install pyinstaller httpx
-          python build.py
-
-      - name: Ad-hoc code sign
-        run: codesign --force --deep -s - premium/dist/${{ matrix.artifact }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v5
@@ -262,9 +167,7 @@ jobs:
     needs:
       - python-tests
       - build-premium-linux
-      - build-premium-macos
       - build-installer-linux
-      - build-installer-macos
 
     steps:
       - name: Checkout
@@ -313,31 +216,4 @@ jobs:
             for f in release-assets/*; do
               gh release upload "$TAG" "$f" --clobber || true
             done
-          fi
-
-      - name: Update README with latest version
-        if: success()
-        run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null \
-            || echo "main")
-
-          if [ -f README.md ]; then
-            PATTERN="maxritter/claude-codepro/[^/]*/install.sh"
-            REPLACE="maxritter/claude-codepro/${LATEST_TAG}/install.sh"
-            sed -i "s|${PATTERN}|${REPLACE}|g" README.md
-
-            if git diff --quiet README.md; then
-              echo "No changes to README.md"
-            else
-              EMAIL="github-actions[bot]@users.noreply.github.com"
-              git config --local user.email "${EMAIL}"
-              git config --local user.name "github-actions[bot]"
-              git add README.md
-              MSG="docs: update install URL to ${LATEST_TAG} [skip ci]"
-              git commit -m "${MSG}"
-              TOKEN="${{ secrets.GITHUB_TOKEN }}"
-              REPO="${{ github.repository }}"
-              URL="https://x-access-token:${TOKEN}@github.com/"
-              git push "${URL}${REPO}.git" HEAD:main
-            fi
           fi
