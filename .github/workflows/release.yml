@@ -76,29 +76,16 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Install dependencies
-        run: >
-          npm install -g semantic-release@latest
-          @semantic-release/git@latest
-          @semantic-release/changelog@latest
-          @semantic-release/exec@latest
-
-      - name: Run semantic-release
+      - name: Semantic Release
         id: semantic
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          extra_plugins: |
+            @semantic-release/git
+            @semantic-release/changelog
+            @semantic-release/exec
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          OUTPUT=$(npx semantic-release 2>&1) || true
-          echo "$OUTPUT"
-          # Extract version from output
-          PATTERN='Published release \K[0-9]+\.[0-9]+\.[0-9]+'
-          VERSION=$(echo "$OUTPUT" | grep -oP "$PATTERN" || echo "")
-          if [ -n "$VERSION" ]; then
-            echo "new_release_published=true" >> $GITHUB_OUTPUT
-            echo "new_release_version=$VERSION" >> $GITHUB_OUTPUT
-          else
-            echo "new_release_published=false" >> $GITHUB_OUTPUT
-          fi
 
   build-and-upload:
     name: Build and Upload Binaries
